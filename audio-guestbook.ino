@@ -66,8 +66,6 @@ char filename[15];
 // The file object itself
 File frec;
 
-bool greeting;
-
 // Use long 40ms debounce time on both switches
 Bounce buttonRecord = Bounce(HOOK_PIN, 40);
 Bounce buttonPlay = Bounce(PLAYBACK_BUTTON_PIN, 40);
@@ -171,7 +169,7 @@ void setup()
     // stop here if no SD card, but print a message
     while (1)
     {
-      makeSamSay("Unable to access the SD card");
+      Serial.println("Unable to access the SD card");
       delay(500);
     }
   }
@@ -199,8 +197,6 @@ void setup()
   // Define a callback that will assign the correct datetime for any file system operations
   // (i.e. saving a new audio recording onto the SD card)
   FsDateTime::setCallback(dateTime);
-
-  greeting = SD.exists("greeting.wav");
 
   makeSamSay("I hate mondays.");
 
@@ -246,39 +242,31 @@ void loop()
   case Mode::Prompting:
     // Wait a second for users to put the handset to their ear
     wait(1000);
-    if (!greeting)
+    // Play the greeting inviting them to record their message
+    playWav1.play("greeting.wav");
+    // Wait until the  message has finished playing
+    //      while (playWav1.isPlaying()) {
+    while (!playWav1.isStopped())
     {
-      makeSamSay("No greeting detected. Initialize greeting recording sequence.");
-    }
-    else
-    {
-      // Play the greeting inviting them to record their message
-      playWav1.play("greeting.wav");
-      // Wait until the  message has finished playing
-      //      while (playWav1.isPlaying()) {
-      while (!playWav1.isStopped())
+      // Check whether the handset is replaced
+      buttonRecord.update();
+      buttonPlay.update();
+      // Handset is replaced
+      if (buttonRecord.fallingEdge())
       {
-        // Check whether the handset is replaced
-        buttonRecord.update();
-        buttonPlay.update();
-        // Handset is replaced
-        if (buttonRecord.fallingEdge())
-        {
-          playWav1.stop();
-          mode = Mode::Ready;
-          print_mode();
-          return;
-        }
-        if (buttonPlay.fallingEdge())
-        {
-          playWav1.stop();
-          playAllRecordings();
-          // playLastRecording();
-          return;
-        }
+        playWav1.stop();
+        mode = Mode::Ready;
+        print_mode();
+        return;
+      }
+      if (buttonPlay.fallingEdge())
+      {
+        playWav1.stop();
+        playAllRecordings();
+        // playLastRecording();
+        return;
       }
     }
-    
     // Debug message
     Serial.println("Starting Recording");
     // Play the tone sound effect
@@ -286,7 +274,7 @@ void loop()
     wait(1250);
     waveform1.amplitude(0);
     // Start the recording function
-    startRecording(greeting);
+    startRecording();
     break;
 
   case Mode::Recording:
@@ -335,7 +323,7 @@ void setMTPdeviceChecks(bool nable)
 static uint32_t worstSDwrite, printNext;
 #endif // defined(INSTRUMENT_SD_WRITE)
 
-void startRecording(bool greeting)
+void startRecording()
 {
   setMTPdeviceChecks(false); // disable MTP device checks while recording
 #if defined(INSTRUMENT_SD_WRITE)
@@ -354,14 +342,7 @@ void startRecording(bool greeting)
       break;
     }
   }
-  if (greeting)
-  {
-    frec = SD.open(filename, FILE_WRITE);
-  }
-  else
-  {
-    frec = SD.open("greeting.wav", FILE_WRITE);
-  }
+  frec = SD.open(filename, FILE_WRITE);
   Serial.println("Opened file !");
   if (frec)
   {
@@ -432,7 +413,6 @@ void stopRecording()
   // Close the file
   frec.close();
   Serial.println("Closed file");
-  greeting = true;
   mode = Mode::Ready;
   print_mode();
   setMTPdeviceChecks(true); // enable MTP device checks, recording is finished
