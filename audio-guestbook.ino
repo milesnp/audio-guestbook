@@ -196,8 +196,8 @@ void loop()
     }
     else if (buttonPlay.fallingEdge())
     {
-      // playAllRecordings();
-      playLastRecording();
+      playAllRecordings();
+      // playLastRecording();
     }
     break;
 
@@ -224,8 +224,8 @@ void loop()
       if (buttonPlay.fallingEdge())
       {
         playWav1.stop();
-        // playAllRecordings();
-        playLastRecording();
+        playAllRecordings();
+        // playLastRecording();
         return;
       }
     }
@@ -382,42 +382,45 @@ void stopRecording()
 
 void playAllRecordings()
 {
+  wait(1000);
+
   // Recording files are saved in the root directory
   File dir = SD.open("/");
-
-  while (true)
+  // Find the first available file number
+  uint16_t idx = 0;
+  for (uint16_t i = 0; i < 9999; i++)
   {
-    File entry = dir.openNextFile();
-    if (strstr(entry.name(), "greeting"))
+    // Format the counter as a five-digit number with leading zeroes, followed by file extension
+    snprintf(filename, 11, " %05d.wav", i);
+    // check, if file with index i exists
+    if (!SD.exists(filename))
     {
-      entry = dir.openNextFile();
-    }
-    if (!entry)
-    {
-      // no more files
-      entry.close();
-      end_Beep();
+      idx = i;
       break;
     }
-    // int8_t len = strlen(entry.name()) - 4;
-    //    if (strstr(strlwr(entry.name() + (len - 4)), ".raw")) {
-    //    if (strstr(strlwr(entry.name() + (len - 4)), ".wav")) {
-    // the lines above throw a warning, so I replace them with this (which is also easier to read):
-    if (strstr(entry.name(), ".wav") || strstr(entry.name(), ".WAV"))
+  }
+  while (idx > 0)
+  {
+    idx = idx - 1;
+    // now play file with index idx 
+    snprintf(filename, 11, " %05d.wav", idx);
+    if (SD.exists(filename))
     {
       Serial.print("Now playing ");
-      Serial.println(entry.name());
+      Serial.println(filename);
       // Play a short beep before each message
       waveform1.amplitude(beep_volume);
       wait(750);
       waveform1.amplitude(0);
       // Play the file
-      playWav1.play(entry.name());
+      playWav1.play(filename);
       mode = Mode::Playing;
       print_mode();
+    } 
+    else
+    {
+      continue;
     }
-    entry.close();
-
     //    while (playWav1.isPlaying()) { // strangely enough, this works for playRaw, but it does not work properly for playWav
     while (!playWav1.isStopped())
     { // this works for playWav
@@ -440,6 +443,8 @@ void playAllRecordings()
     }
   }
   // All files have been played
+  // no more files
+  end_Beep();
   mode = Mode::Ready;
   print_mode();
 }
