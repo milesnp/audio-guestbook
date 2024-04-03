@@ -441,6 +441,7 @@ void playAllRecordings()
 
 void playLastRecording()
 {
+  wait(1000);
   // Find the first available file number
   uint16_t idx = 0;
   for (uint16_t i = 0; i < 9999; i++)
