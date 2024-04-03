@@ -425,7 +425,12 @@ void playAllRecordings()
       buttonRecord.update();
       // Button is pressed again
       //      if(buttonPlay.risingEdge() || buttonRecord.fallingEdge()) { // FIX
-      if (buttonPlay.fallingEdge() || buttonRecord.fallingEdge())
+      if (buttonPlay.fallingEdge())
+      {
+        playWav1.stop();
+        continue;
+      }
+      else if (buttonRecord.fallingEdge())
       {
         playWav1.stop();
         mode = Mode::Ready;
