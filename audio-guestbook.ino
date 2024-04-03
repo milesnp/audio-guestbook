@@ -145,7 +145,7 @@ void setup()
 
   // Add SD Card
   //    MTP.addFilesystem(SD, "SD Card");
-  MTP.addFilesystem(SD, "Kais Audio guestbook"); // choose a nice name for the SD card volume to appear in your file explorer
+  MTP.addFilesystem(SD, "Arlo & Laura's Audio guestbook"); // choose a nice name for the SD card volume to appear in your file explorer
   Serial.println("Added SD card via MTP");
   MTPcheckInterval = MTP.storage()->get_DeltaDeviceCheckTimeMS();
 
@@ -153,6 +153,7 @@ void setup()
   //  sgtl5000_1.micGain(15);
   sgtl5000_1.micGain(5); // much lower gain is required for the AOM5024 electret capsule
 
+  Teensy3Clock.set(1713096061);
   // Synchronise the Time object used in the program code with the RTC time provider.
   // See https://github.com/PaulStoffregen/Time
   setSyncProvider(getTeensy3Time);
