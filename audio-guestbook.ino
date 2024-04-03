@@ -161,7 +161,7 @@ void setup()
 
   mixer.gain(0, 0.6f);
   mixer.gain(1, 0.6f);
-  mixer.gain(2, 0.01f);
+  mixer.gain(2, 0.1f);
   sam.setSpeed(95);
 
   // Initialize the SD card
@@ -203,7 +203,7 @@ void setup()
 
   greeting = SD.exists("greeting.wav");
 
-  makeSamSay("I am ready to record.");
+  makeSamSay("I hate mondays.");
 
   /*   // Play a beep to indicate system is online
     waveform1.begin(beep_volume, 440, WAVEFORM_SINE);
