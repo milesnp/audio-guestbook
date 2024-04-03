@@ -188,7 +188,7 @@ void loop()
   {
   case Mode::Ready:
     // Falling edge occurs when the handset is lifted --> 611 telephone
-    if (buttonRecord.fallingEdge())
+    if (buttonRecord.risingEdge())
     {
       Serial.println("Handset lifted");
       mode = Mode::Prompting;
@@ -214,7 +214,7 @@ void loop()
       buttonRecord.update();
       buttonPlay.update();
       // Handset is replaced
-      if (buttonRecord.risingEdge())
+      if (buttonRecord.fallingEdge())
       {
         playWav1.stop();
         mode = Mode::Ready;
@@ -241,7 +241,7 @@ void loop()
 
   case Mode::Recording:
     // Handset is replaced
-    if (buttonRecord.risingEdge())
+    if (buttonRecord.fallingEdge())
     {
       // Debug log
       Serial.println("Stopping Recording");
@@ -424,8 +424,8 @@ void playAllRecordings()
       buttonPlay.update();
       buttonRecord.update();
       // Button is pressed again
-      //      if(buttonPlay.risingEdge() || buttonRecord.risingEdge()) { // FIX
-      if (buttonPlay.fallingEdge() || buttonRecord.risingEdge())
+      //      if(buttonPlay.risingEdge() || buttonRecord.fallingEdge()) { // FIX
+      if (buttonPlay.fallingEdge() || buttonRecord.fallingEdge())
       {
         playWav1.stop();
         mode = Mode::Ready;
@@ -465,8 +465,8 @@ void playLastRecording()
     buttonPlay.update();
     buttonRecord.update();
     // Button is pressed again
-    //      if(buttonPlay.risingEdge() || buttonRecord.risingEdge()) { // FIX
-    if (buttonPlay.fallingEdge() || buttonRecord.risingEdge())
+    //      if(buttonPlay.risingEdge() || buttonRecord.fallingEdge()) { // FIX
+    if (buttonPlay.fallingEdge() || buttonRecord.fallingEdge())
     {
       playWav1.stop();
       mode = Mode::Ready;
@@ -510,11 +510,11 @@ void wait(unsigned int milliseconds)
   {
     buttonRecord.update();
     buttonPlay.update();
-    if (buttonRecord.fallingEdge())
+    if (buttonRecord.risingEdge())
       Serial.println("Button (pin 0) Press");
     if (buttonPlay.fallingEdge())
       Serial.println("Button (pin 1) Press");
-    if (buttonRecord.risingEdge())
+    if (buttonRecord.fallingEdge())
       Serial.println("Button (pin 0) Release");
     if (buttonPlay.risingEdge())
       Serial.println("Button (pin 1) Release");
