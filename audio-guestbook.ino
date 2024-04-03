@@ -108,6 +108,7 @@ float beep_volume = 0.04f; // not too loud :-)
 uint32_t MTPcheckInterval; // default value of device check interval [ms]
 
 // variables for writing to WAV file
+unsigned long startTime = 0L;
 unsigned long ChunkSize = 0L;
 unsigned long Subchunk1Size = 16;
 unsigned int AudioFormat = 1;
@@ -159,7 +160,7 @@ void setup()
 
   mixer.gain(0, 0.6f);
   mixer.gain(1, 0.6f);
-  mixer.gain(2, 0.1f);
+  mixer.gain(2, 0.05f);
   sam.setSpeed(95);
 
   // Initialize the SD card
@@ -280,7 +281,7 @@ void loop()
 
   case Mode::Recording:
     // Handset is replaced
-    if (buttonRecord.fallingEdge())
+    if (buttonRecord.fallingEdge() || millis() - startTime > 300000)
     {
       // Debug log
       Serial.println("Stopping Recording");
@@ -349,6 +350,7 @@ void startRecording()
   {
     Serial.print("Recording to ");
     Serial.println(filename);
+    startTime = millis();
     queue1.begin();
     mode = Mode::Recording;
     print_mode();
