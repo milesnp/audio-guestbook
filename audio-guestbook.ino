@@ -72,23 +72,22 @@ bool greeting;
 Bounce buttonRecord = Bounce(HOOK_PIN, 40);
 Bounce buttonPlay = Bounce(PLAYBACK_BUTTON_PIN, 40);
 
-void setI2SFreq(int freq)
-{
+void setI2SFreq(int freq) {
   // PLL between 27*24 = 648MHz und 54*24=1296MHz
-  int n1 = 4; // SAI prescaler 4 => (n1*n2) = multiple of 4
+  int n1 = 4; //SAI prescaler 4 => (n1*n2) = multiple of 4
   int n2 = 1 + (24000000 * 27) / (freq * 256 * n1);
   double C = ((double)freq * 256 * n1 * n2) / 24000000;
   int c0 = C;
   int c2 = 10000;
   int c1 = C * c2 - (c0 * c2);
   set_audioClock(c0, c1, c2, true);
-  CCM_CS1CDR = (CCM_CS1CDR & ~(CCM_CS1CDR_SAI1_CLK_PRED_MASK | CCM_CS1CDR_SAI1_CLK_PODF_MASK)) | CCM_CS1CDR_SAI1_CLK_PRED(n1 - 1) // &0x07
-               | CCM_CS1CDR_SAI1_CLK_PODF(n2 - 1);                                                                                // &0x3f
-  // Serial.printf("SetI2SFreq(%d)\n",freq);
+  CCM_CS1CDR = (CCM_CS1CDR & ~(CCM_CS1CDR_SAI1_CLK_PRED_MASK | CCM_CS1CDR_SAI1_CLK_PODF_MASK))
+       | CCM_CS1CDR_SAI1_CLK_PRED(n1-1) // &0x07
+       | CCM_CS1CDR_SAI1_CLK_PODF(n2-1); // &0x3f 
+//Serial.printf("SetI2SFreq(%d)\n",freq);
 }
 
-void samCallback(size_t len, void *data)
-{
+void samCallback(size_t len, void *data){
   int16_t *data16 = (int16_t *)data;
   queue2.play(data16, len);
 }
@@ -123,9 +122,9 @@ unsigned long recByteSaved = 0L;
 unsigned long NumSamples = 0L;
 byte byte1, byte2, byte3, byte4;
 
-void makeSamSay(char *input)
+void makeSamSay(char* input)
 {
-  setI2SFreq(22050);
+  setI2SFreq(22050); 
   Serial.printf("Sam says: %s\n", input);
   // Make SAM say something
   sam.say(input);
@@ -205,17 +204,17 @@ void setup()
 
   makeSamSay("I hate mondays.");
 
-  /*   // Play a beep to indicate system is online
-    waveform1.begin(beep_volume, 440, WAVEFORM_SINE);
-    wait(240);
-    waveform1.frequency(466.16);
-    wait(240);
-    waveform1.frequency(493.88);
-    wait(240);
-    waveform1.frequency(523.25);
-    wait(720);
-    waveform1.amplitude(0);
-    waveform1.frequency(440); */
+/*   // Play a beep to indicate system is online
+  waveform1.begin(beep_volume, 440, WAVEFORM_SINE);
+  wait(240);
+  waveform1.frequency(466.16);
+  wait(240);
+  waveform1.frequency(493.88);
+  wait(240);
+  waveform1.frequency(523.25);
+  wait(720);
+  waveform1.amplitude(0);
+  waveform1.frequency(440); */
 
   mode = Mode::Ready;
   print_mode();
@@ -279,7 +278,7 @@ void loop()
         }
       }
     }
-
+    
     // Debug message
     Serial.println("Starting Recording");
     // Play the tone sound effect
@@ -461,7 +460,7 @@ void playAllRecordings()
   while (idx > 0)
   {
     idx = idx - 1;
-    // now play file with index idx
+    // now play file with index idx 
     snprintf(filename, 11, " %05d.wav", idx);
     if (SD.exists(filename))
     {
@@ -475,7 +474,7 @@ void playAllRecordings()
       playWav1.play(filename);
       mode = Mode::Playing;
       print_mode();
-    }
+    } 
     else
     {
       continue;
