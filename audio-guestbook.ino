@@ -124,11 +124,6 @@ void setup()
   mixer.gain(0, 1.0f);
   mixer.gain(1, 1.0f);
 
-  // Play a beep to indicate system is online
-  waveform1.begin(beep_volume, 440, WAVEFORM_SINE);
-  wait(1000);
-  waveform1.amplitude(0);
-  delay(1000);
 
   // Initialize the SD card
   SPI.setMOSI(SDCARD_MOSI_PIN);
@@ -165,6 +160,19 @@ void setup()
   // Define a callback that will assign the correct datetime for any file system operations
   // (i.e. saving a new audio recording onto the SD card)
   FsDateTime::setCallback(dateTime);
+
+  // Play a beep to indicate system is online
+  waveform1.begin(beep_volume, 440, WAVEFORM_SINE);
+  wait(240);
+  waveform1.frequency(466.16);
+  wait(240);
+  waveform1.frequency(493.88);
+  wait(240);
+  waveform1.frequency(523.25);
+  wait(720);
+  waveform1.amplitude(0);
+  waveform1.frequency(440);
+  delay(1000);
 
   mode = Mode::Ready;
   print_mode();
