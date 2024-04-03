@@ -29,6 +29,8 @@
 #include <TimeLib.h>
 #include <MTP_Teensy.h>
 #include "play_sd_wav.h" // local copy with fixes
+#include "sam_arduino.h" // speech synthesis
+#include <utility/imxrt_hw.h>
 
 // DEFINES
 // Define pins used by Teensy Audio Shield
@@ -46,11 +48,13 @@
 // Inputs
 AudioSynthWaveform waveform1;                       // To create the "beep" sfx
 AudioInputI2S i2s2;                                 // I2S input from microphone on audio shield
+AudioPlayQueue queue2;                              // queue input from SAM
 AudioPlaySdWavX playWav1;                           // Play 44.1kHz 16-bit PCM greeting WAV file
 AudioRecordQueue queue1;                            // Creating an audio buffer in memory before saving to SD
 AudioMixer4 mixer;                                  // Allows merging several inputs to same output
 AudioOutputI2S i2s1;                                // I2S interface to Speaker/Line Out on Audio shield
 AudioConnection patchCord1(waveform1, 0, mixer, 0); // wave to mixer
+AudioConnection patchCord7(queue2, 0, mixer, 2);    // SAM to mixer
 AudioConnection patchCord3(playWav1, 0, mixer, 1);  // wav file playback mixer
 AudioConnection patchCord4(mixer, 0, i2s1, 0);      // mixer output to speaker (L)
 AudioConnection patchCord6(mixer, 0, i2s1, 1);      // mixer output to speaker (R)
@@ -65,6 +69,27 @@ File frec;
 // Use long 40ms debounce time on both switches
 Bounce buttonRecord = Bounce(HOOK_PIN, 40);
 Bounce buttonPlay = Bounce(PLAYBACK_BUTTON_PIN, 40);
+
+void setI2SFreq(int freq) {
+  // PLL between 27*24 = 648MHz und 54*24=1296MHz
+  int n1 = 4; //SAI prescaler 4 => (n1*n2) = multiple of 4
+  int n2 = 1 + (24000000 * 27) / (freq * 256 * n1);
+  double C = ((double)freq * 256 * n1 * n2) / 24000000;
+  int c0 = C;
+  int c2 = 10000;
+  int c1 = C * c2 - (c0 * c2);
+  set_audioClock(c0, c1, c2, true);
+  CCM_CS1CDR = (CCM_CS1CDR & ~(CCM_CS1CDR_SAI1_CLK_PRED_MASK | CCM_CS1CDR_SAI1_CLK_PODF_MASK))
+       | CCM_CS1CDR_SAI1_CLK_PRED(n1-1) // &0x07
+       | CCM_CS1CDR_SAI1_CLK_PODF(n2-1); // &0x3f 
+//Serial.printf("SetI2SFreq(%d)\n",freq);
+}
+
+void samCallback(size_t len, void *data){
+  int16_t *data16 = (int16_t *)data;
+  queue2.play(data16, len);
+}
+SAM sam(samCallback);
 
 // Keep track of current state of the device
 enum Mode
@@ -95,6 +120,16 @@ unsigned long recByteSaved = 0L;
 unsigned long NumSamples = 0L;
 byte byte1, byte2, byte3, byte4;
 
+void makeSamSay(char* input)
+{
+  setI2SFreq(22050); 
+  Serial.printf("Sam says: %s\n", input);
+  // Make SAM say something
+  sam.say(input);
+  wait(1000);
+  setI2SFreq(44100);
+}
+
 void setup()
 {
 
@@ -123,6 +158,8 @@ void setup()
 
   mixer.gain(0, 0.6f);
   mixer.gain(1, 0.6f);
+  mixer.gain(2, 0.01f);
+  sam.setSpeed(95);
 
   // Initialize the SD card
   SPI.setMOSI(SDCARD_MOSI_PIN);
@@ -161,7 +198,9 @@ void setup()
   // (i.e. saving a new audio recording onto the SD card)
   FsDateTime::setCallback(dateTime);
 
-  // Play a beep to indicate system is online
+  makeSamSay("I am ready to record.");
+
+/*   // Play a beep to indicate system is online
   waveform1.begin(beep_volume, 440, WAVEFORM_SINE);
   wait(240);
   waveform1.frequency(466.16);
@@ -171,8 +210,7 @@ void setup()
   waveform1.frequency(523.25);
   wait(720);
   waveform1.amplitude(0);
-  waveform1.frequency(440);
-  delay(1000);
+  waveform1.frequency(440); */
 
   mode = Mode::Ready;
   print_mode();
