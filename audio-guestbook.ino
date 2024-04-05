@@ -125,7 +125,6 @@ void setup()
 
   mixer.gain(0, 0.6f);
   mixer.gain(1, 0.6f);
-  mixer.gain(2, 0.05f);
 
   // Initialize the SD card
   SPI.setMOSI(SDCARD_MOSI_PIN);
