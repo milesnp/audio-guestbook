@@ -121,9 +121,9 @@ void setup()
   // Define which input on the audio shield to use (AUDIO_INPUT_LINEIN / AUDIO_INPUT_MIC)
   sgtl5000_1.inputSelect(AUDIO_INPUT_MIC);
   // sgtl5000_1.adcHighPassFilterDisable(); //
-  sgtl5000_1.volume(0.8);
+  sgtl5000_1.volume(0.7);
 
-  mixer.gain(0, 0.6f);
+  mixer.gain(0, 1.0f);
   mixer.gain(1, 0.6f);
 
   // Initialize the SD card
@@ -152,7 +152,7 @@ void setup()
 
   // Value in dB
   //  sgtl5000_1.micGain(15);
-  sgtl5000_1.micGain(3); // much lower gain is required for the AOM5024 electret capsule
+  sgtl5000_1.micGain(15); // much lower gain is required for the AOM5024 electret capsule
 
   Teensy3Clock.set(1713096061);
   // Synchronise the Time object used in the program code with the RTC time provider.
